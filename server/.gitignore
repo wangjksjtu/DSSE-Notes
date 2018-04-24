@@ -1,0 +1,6 @@
+tmp
+graph
+*.pyc
+*.so
+ciphertext/migrations
+db.sqlite3
