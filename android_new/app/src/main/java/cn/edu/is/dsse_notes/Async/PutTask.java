@@ -78,7 +78,7 @@ public class PutTask extends AsyncTask<NoteContent.NoteItem, Void, Boolean> {
 
     private String constructForm(NoteContent.NoteItem item) {
         try {
-            String keys = URLEncoder.encode(NoteContent.getDummyRemoteKey(), "UTF-8");
+            String keys = URLEncoder.encode(item.getKeyString(), "UTF-8");
             JSONObject itemJsonObject = new JSONObject();
             itemJsonObject.put("title", item.title);
             itemJsonObject.put("title", item.details);

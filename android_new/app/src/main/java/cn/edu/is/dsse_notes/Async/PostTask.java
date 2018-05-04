@@ -61,6 +61,7 @@ public class PostTask extends AsyncTask<NoteContent.NoteItem, Void, Boolean> {
                 BufferedWriter writer = new BufferedWriter(
                         new OutputStreamWriter(os,"UTF-8"));
                 writer.write(constructForm(item));
+                Log.d("PostTask","Write Form: " + constructForm(item));
                 writer.flush();
                 writer.close();
                 os.close();
@@ -111,12 +112,12 @@ public class PostTask extends AsyncTask<NoteContent.NoteItem, Void, Boolean> {
 
     private String constructForm(NoteContent.NoteItem item) {
         try {
-            String keys = URLEncoder.encode(NoteContent.getDummyRemoteKey(), "UTF-8");
+            String keys = URLEncoder.encode(item.getKeyString(), "UTF-8");
             JSONObject itemJsonObject = new JSONObject();
             itemJsonObject.put("title", item.title);
-            itemJsonObject.put("title", item.details);
+            itemJsonObject.put("content", item.details);
             String content = URLEncoder.encode(itemJsonObject.toString(),"UTF-8");
-            return "keys=" + keys + "&title=" + content;
+            return "keys=" + keys + "&content=" + content;
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (JSONException e) {

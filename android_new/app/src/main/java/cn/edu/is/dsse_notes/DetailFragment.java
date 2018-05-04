@@ -4,11 +4,15 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.adroitandroid.chipcloud.ChipCloud;
+import com.adroitandroid.chipcloud.ChipListener;
 
 import cn.edu.is.dsse_notes.note.NoteContent;
 
@@ -43,7 +47,6 @@ public class DetailFragment extends Fragment {
      * @param param1 Parameter 1.
      * @return A new instance of fragment DetailFragment.
      */
-    // TODO: Rename and change types and number of parameters
     public static DetailFragment newInstance(NoteContent.NoteItem param1) {
         DetailFragment fragment = new DetailFragment();
         Bundle args = new Bundle();
@@ -73,14 +76,25 @@ public class DetailFragment extends Fragment {
         if (mParamNote.details != "") {
             detail.setText(mParamNote.details);
         }
-        return view;
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onDetailFragmentInteraction(uri);
+        final ChipCloud chipCloud = (ChipCloud) view.findViewById(R.id.detail_chip_cloud);
+        chipCloud.addChips(NoteContent.tagList);
+        for (Integer i : mParamNote.tags) {
+            chipCloud.setSelectedChip(i);
         }
+        chipCloud.setChipListener(new ChipListener() {
+            @Override
+            public void chipSelected(int i) {
+                Log.d("DetailFragment","Tag #" + i + " selected");
+                mParamNote.tags.add(i);
+            }
+
+            @Override
+            public void chipDeselected(int i) {
+                Log.d("DetailFragment","Tag #" + i + " deselected");
+                mParamNote.tags.remove(i);
+            }
+        });
+        return view;
     }
 
     @Override
@@ -105,6 +119,7 @@ public class DetailFragment extends Fragment {
                 title.getText().toString(),
                 content.getText().toString());
         note.remoteId = mParamNote.remoteId;
+        note.tags = mParamNote.tags;
         mListener.onSave(note);
     }
     @Override

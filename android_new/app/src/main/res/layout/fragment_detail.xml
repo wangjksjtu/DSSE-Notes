@@ -104,6 +104,8 @@
                         android:orientation="vertical">
 
                         <include layout="@layout/fragment_detail_content"/>
+                        <include layout="@layout/fragment_detail_tags"/>
+
 
                     </LinearLayout>
                 </ScrollView>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.adroitandroid.chipcloud.ChipCloud
+    xmlns:chipcloud="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/detail_chip_cloud"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    chipcloud:deselectedColor="@color/deselected_color"
+    chipcloud:deselectedFontColor="@color/deselected_font_color"
+    chipcloud:selectedColor="@color/selected_color"
+    chipcloud:selectedFontColor="@color/selected_font_color"
+    chipcloud:deselectTransitionMS="500"
+    chipcloud:selectTransitionMS="750"
+    chipcloud:selectMode="multi"
+    chipcloud:allCaps="true"
+    chipcloud:gravity="staggered"
+    chipcloud:minHorizontalSpacing="32dp"
+    chipcloud:verticalSpacing="16dp"
+    chipcloud:textSize="14sp"/>

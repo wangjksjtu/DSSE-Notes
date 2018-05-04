@@ -9,5 +9,8 @@
     <color name="location_text">@color/text_color_lighter</color>
     <color name="text_color_lighter">#9b000000</color>
     <color name="text_color">#b9000000</color>
-
+    <color name="deselected_color">#e1e1e1</color>
+    <color name="deselected_font_color">#303F9F</color>
+    <color name="selected_color">#303F9F</color>
+    <color name="selected_font_color">#ffffff</color>
 </resources>

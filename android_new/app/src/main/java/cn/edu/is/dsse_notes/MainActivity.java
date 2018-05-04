@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity
         searchView = (SearchView) myActionMenuItem.getActionView();
         searchView.setQueryHint("Search Notes");
         searchView.setOnQueryTextListener(this);
-        searchView.setIconified(false);
+        searchView.setIconified(true);
         return true;
     }
 
