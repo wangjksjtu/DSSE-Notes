@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.support.v7.widget.Toolbar;
 
 import com.adroitandroid.chipcloud.ChipCloud;
 import com.adroitandroid.chipcloud.ChipListener;
@@ -27,11 +28,9 @@ import cn.edu.is.dsse_notes.note.NoteContent;
  */
 
 public class DetailFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_NOTE = "param_note";
 
-    // TODO: Rename and change types of parameters
     private NoteContent.NoteItem mParamNote;
 
     private OnFragmentInteractionListener mListener;
@@ -94,6 +93,9 @@ public class DetailFragment extends Fragment {
                 mParamNote.tags.remove(Integer.valueOf(i));
             }
         });
+        getActivity().findViewById(R.id.action_search).setVisibility(View.INVISIBLE);
+        Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
+        toolbar.setTitle("Note Detail");
         return view;
     }
 
@@ -121,13 +123,16 @@ public class DetailFragment extends Fragment {
         note.remoteId = mParamNote.remoteId;
         note.tags = mParamNote.tags;
         mListener.onSave(note);
+        getActivity().findViewById(R.id.action_search).setVisibility(View.VISIBLE);
     }
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
         View fab = getActivity().findViewById(R.id.fab);
-        fab.setVisibility(View.VISIBLE) ;
+        fab.setVisibility(View.VISIBLE);
+        Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
+        toolbar.setTitle(R.string.app_name);
     }
 
     /**

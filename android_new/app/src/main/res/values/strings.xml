@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DSSE-Notes</string>
+    <string name="app_name">DSSE Notes</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
@@ -10,6 +10,9 @@
     <string name="content">Content</string>
     <string name="add_reminder">Add reminder</string>
     <string name="title">Title</string>
-
     <string name="search_hint">Search Tags</string>
+
+    <string name="secret">terces</string>
+    <string name="init_vector">rotcev_tini</string>
+    <string name="title_activity_about">AboutActivity</string>
 </resources>

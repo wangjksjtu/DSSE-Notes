@@ -2,8 +2,10 @@ package cn.edu.is.dsse_notes;
 
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -20,13 +22,16 @@ import android.view.MenuItem;
 import android.net.Uri;
 import android.widget.Toast;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import cn.edu.is.dsse_notes.Async.DeleteTask;
 import cn.edu.is.dsse_notes.Async.PostTask;
 import cn.edu.is.dsse_notes.Async.PutTask;
 import cn.edu.is.dsse_notes.Async.QueryTask;
+import cn.edu.is.dsse_notes.Async.SyncTask;
 import cn.edu.is.dsse_notes.note.NoteContent;
 
 public class MainActivity extends AppCompatActivity
@@ -35,7 +40,8 @@ public class MainActivity extends AppCompatActivity
         ListFragment.ListFragmentInteractionListener,
         cn.edu.is.dsse_notes.DetailFragment.OnFragmentInteractionListener,
         cn.edu.is.dsse_notes.Async.PostTask.PostListener,
-        cn.edu.is.dsse_notes.Async.QueryTask.QueryCompleteListener
+        cn.edu.is.dsse_notes.Async.QueryTask.QueryCompleteListener,
+        cn.edu.is.dsse_notes.Async.SyncTask.SyncCompleteListener
 {
 
     private int currentDrawerPosition = 0;
@@ -61,14 +67,22 @@ public class MainActivity extends AppCompatActivity
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                if (!searchView.isIconified()) {
+                    searchView.setIconified(true);
+                }
+            }
+        };
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        selectItem(R.id.nav_list);
+        selectItem(R.id.drawer_nav_list);
 
 
     }
@@ -95,10 +109,11 @@ public class MainActivity extends AppCompatActivity
         searchView.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
-                currentListFragment.onDataSetChanged((ArrayList<NoteContent.NoteItem>) NoteContent.ITEMS);
+                launchListFragment();
                 return false;
             }
         });
+
         searchView.setOnQueryTextListener(this);
         searchView.setIconified(true);
         return true;
@@ -131,78 +146,62 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void selectItem(int id) {
-        if (id == R.id.nav_query) {
-            testQuery();
-        } else if (id == R.id.nav_delete) {
-            testDelete();
-        } else if (id == R.id.nav_change) {
-            testChange();
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-            onShareAction();
-            return;
-        } else if (id == R.id.nav_send) {
-
-        } else if (id == R.id.nav_list) {
-            ListFragment lf = new ListFragment();
-            lf.setListener(this);
-            currentListFragment = lf;
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft.replace(R.id.main_frame, lf, "Visible Fragment");
-            ft.addToBackStack(null);
-            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-            ft.commit();
-        } else {
-
+        switch (id) {
+            case R.id.drawer_nav_list:
+                launchListFragment();
+                break;
+            case R.id.drawer_action_query:
+                launchListFragment();
+                Log.d("Drawer","SearchView is " + searchView.toString());
+                searchView.setIconified(false);
+                break;
+            case R.id.drawer_action_sync:
+                SyncTask syncTask = new SyncTask();
+                syncTask.setSyncCompleteListener(this);
+                syncTask.execute();
+                break;
+            case R.id.drawer_about:
+                Intent intent = new Intent();
+                intent.setClass(this, AboutActivity.class);
+                startActivity(intent);
+                break;
         }
     }
 
-    // DUMMY Communication Testing Methods
-    private void testQuery() {
-        Log.d("QueryTask","Inside Query Task");
-        QueryTask queryTask = new QueryTask();
-        queryTask.execute(1,2,3);
-        return;
-    }
-
-    private void testDelete() {
-        DeleteTask deleteTask = new DeleteTask();
-        deleteTask.execute(73);
-        return;
-    }
-
-    private void testChange() {
-        PutTask putTask = new PutTask();
-        return;
-}
     // Floating Action Button Click Handler
     private void onFABClicked() {
         NoteContent.NoteItem newItem = new NoteContent.NoteItem(NoteContent.getNewItemID(), "", "");
         NoteContent.ITEMS.add(newItem);
         NoteContent.ITEM_MAP.put(newItem.id, newItem);
-        Fragment fd = DetailFragment.newInstance(newItem);
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.main_frame, fd);
-        ft.addToBackStack(null);
-        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        ft.commit();
+        launchDetailFragment(newItem);
     }
-
-
 
     // List Item Click Interface
     @Override
     public void onItemClicked(int position) {
         NoteContent.NoteItem noteClicked = NoteContent.ITEMS.get(position);
-        Fragment fd = DetailFragment.newInstance(noteClicked);
+        launchDetailFragment(noteClicked);
+    }
+
+    private void launchListFragment() {
+        ListFragment lf = new ListFragment();
+        lf.setListener(this);
+        currentListFragment = lf;
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.main_frame, lf, "Visible Fragment");
+        ft.addToBackStack(null);
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        ft.commit();
+    }
+
+    private void launchDetailFragment(NoteContent.NoteItem item) {
+        Fragment fd = DetailFragment.newInstance(item);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.main_frame, fd);
         ft.addToBackStack(null);
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         ft.commit();
     }
-
     private void doSearch(String query) {
 
         ArrayList<String> tagList = new ArrayList<String>();
@@ -282,10 +281,27 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    //Query task listener
+    // Query task listener
     @Override
-    public void handleResult(ArrayList<NoteContent.NoteItem> resultList) {
+    public void handleQueryResult(ArrayList<NoteContent.NoteItem> resultList) {
         currentListFragment.onDataSetChanged(resultList);
+    }
+
+    // Sync task listener
+    @Override
+    public void handleSyncResult(ArrayList<NoteContent.NoteItem> resultList) {
+        NoteContent.ITEMS = resultList;
+        NoteContent.ITEM_MAP = new HashMap<>();
+        for (NoteContent.NoteItem item : resultList) {
+            NoteContent.ITEM_MAP.put(item.id, item);
+        }
+        ListFragment lf = ListFragment.newInstance(resultList);
+        lf.setListener(this);
+        currentListFragment = lf;
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.main_frame, lf, "Visible Fragment");
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        ft.commit();
     }
 }
 

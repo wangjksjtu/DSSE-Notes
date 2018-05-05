@@ -20,6 +20,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.List;
 
+import cn.edu.is.dsse_notes.Encryption.Encrypter;
 import cn.edu.is.dsse_notes.note.NoteContent;
 
 public class PostTask extends AsyncTask<NoteContent.NoteItem, Void, Boolean> {
@@ -117,7 +118,7 @@ public class PostTask extends AsyncTask<NoteContent.NoteItem, Void, Boolean> {
             itemJsonObject.put("localId", item.id);
             itemJsonObject.put("title", item.title);
             itemJsonObject.put("content", item.details);
-            String content = URLEncoder.encode(itemJsonObject.toString(),"UTF-8");
+            String content = URLEncoder.encode(Encrypter.encrypt(itemJsonObject.toString()),"UTF-8");
             return "keys=" + keys + "&content=" + content;
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

@@ -3,6 +3,7 @@ package cn.edu.is.dsse_notes;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -34,8 +35,8 @@ public class ListFragment extends Fragment implements
         public void onRightClicked(int position);
     }
 
-    private static final String ARG_COLUMN_COUNT = "column-count";
-    private int mColumnCount = 1;
+    private static final String ARG_INIT_DATASET = "init-dataset";
+    private ArrayList<NoteContent.NoteItem> dataSet;
     private ListFragmentInteractionListener listFragmentInteractionListener;
     private MyListRecyclerViewAdapter myListRecyclerViewAdapter = null;
     private RecyclerView mRecyclerView = null;
@@ -48,10 +49,10 @@ public class ListFragment extends Fragment implements
     }
 
     @SuppressWarnings("unused")
-    public static ListFragment newInstance(int columnCount) {
+    public static ListFragment newInstance(ArrayList<NoteContent.NoteItem> initDataSet) {
         ListFragment fragment = new ListFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_COLUMN_COUNT, columnCount);
+        args.putParcelableArrayList(ARG_INIT_DATASET, initDataSet);
         fragment.setArguments(args);
         return fragment;
     }
@@ -61,7 +62,7 @@ public class ListFragment extends Fragment implements
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
+            dataSet = getArguments().getParcelableArrayList(ARG_INIT_DATASET);
         }
     }
 
@@ -77,7 +78,12 @@ public class ListFragment extends Fragment implements
             RecyclerView recyclerView = (RecyclerView) view;
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
             mRecyclerView = recyclerView;
-            MyListRecyclerViewAdapter adapter = new MyListRecyclerViewAdapter(NoteContent.ITEMS, this);
+            MyListRecyclerViewAdapter adapter;
+            if (dataSet != null) {
+                adapter = new MyListRecyclerViewAdapter(dataSet, this);
+            } else {
+                adapter = new MyListRecyclerViewAdapter(NoteContent.ITEMS, this);
+            }
             recyclerView.setAdapter(adapter);
             myListRecyclerViewAdapter = adapter;
             final SwipeController swipeController = new SwipeController();

@@ -19,49 +19,32 @@ import java.util.ArrayList;
 import cn.edu.is.dsse_notes.Encryption.Encrypter;
 import cn.edu.is.dsse_notes.note.NoteContent;
 
-public class QueryTask extends AsyncTask<Integer, Void, String> {
+public class SyncTask extends AsyncTask<Integer, Void, String> {
 
     // Listener interface for performing list update action
-    public interface QueryCompleteListener {
-        public void handleQueryResult(ArrayList<NoteContent.NoteItem> resultList);
+    public interface SyncCompleteListener {
+        public void handleSyncResult(ArrayList<NoteContent.NoteItem> resultList);
     }
 
-    private QueryCompleteListener queryCompleteListener = null;
+    private SyncCompleteListener syncCompleteListener = null;
     private ArrayList<NoteContent.NoteItem> receivedNoteList = new ArrayList<NoteContent.NoteItem>();
     private String apiURL = "http://115.159.88.104:2118/ciphertext/";
 
-    public void setQueryCompleteListener(QueryCompleteListener queryCompleteListener) {
-        this.queryCompleteListener = queryCompleteListener;
+    public void setSyncCompleteListener(SyncCompleteListener syncCompleteListener) {
+        this.syncCompleteListener = syncCompleteListener;
     }
 
     @Override
     protected String doInBackground(Integer... ints) {
 
-        if (ints.length == 0) {
-            return "empty";
-        }
-
-        // Syntax: ints is a list of all the key words (their locations)
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
-        for (Integer index : ints) {
-            if (first) {
-                first = false;
-                sb.append(index.toString());
-            } else {
-                sb.append("|").append(index.toString());
-            }
-        }
-        String queryUrl = apiURL + "?key=" + sb.toString();
-        Log.d("QueryTask", queryUrl);
         try {
-            URL url = new URL(queryUrl);
+            URL url = new URL(apiURL);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setConnectTimeout(5000);
             urlConnection.setRequestProperty("encoding","UTF-8");
             urlConnection.setRequestMethod("GET");
             urlConnection.connect();
-            Log.d("QueryTask","Response Code is" + urlConnection.getResponseCode());
+            Log.d("SyncTask","Response Code is" + urlConnection.getResponseCode());
             BufferedReader bufferedReader = new BufferedReader(
                     new InputStreamReader(urlConnection.getInputStream())
             );
@@ -70,19 +53,21 @@ public class QueryTask extends AsyncTask<Integer, Void, String> {
             while ((inputLine = bufferedReader.readLine()) != null) {
                 stringBuilder.append(inputLine);
             }
-            Log.d("QueryTask", "Query Result is: " + stringBuilder.toString());
+            Log.d("SyncTask", "Query Result is: " + stringBuilder.toString());
             if (stringBuilder.charAt(stringBuilder.length() - 1) != '}') {
                 stringBuilder.append('}');
             }
             JSONObject queryResultJsonObject = new JSONObject(stringBuilder.toString());
             JSONArray resultJsonArray = queryResultJsonObject.getJSONArray("results");
+            Log.d("SyncTask","Result array length is " + resultJsonArray.length());
             for (int i = 0; i < resultJsonArray.length(); i++) {
+                Log.d("SyncTask","Inside add loop");
                 JSONObject childResultJsonObject = resultJsonArray.getJSONObject(i);
                 String remoteID = String.valueOf(childResultJsonObject.getInt("id"));
                 String tags = childResultJsonObject.getString("keys");
                 ArrayList<Integer> tagList = new ArrayList<Integer>();
-                for (int j = 0; i < tags.length(); i++) {
-                    if (tags.charAt(i) == '1') {
+                for (int j = 0; j < tags.length(); j++) {
+                    if (tags.charAt(j) == '1') {
                         tagList.add(j);
                     }
                 }
@@ -96,6 +81,7 @@ public class QueryTask extends AsyncTask<Integer, Void, String> {
                 resultNoteItem.tags = tagList;
                 resultNoteItem.remoteId = remoteID;
                 receivedNoteList.add(resultNoteItem);
+                Log.d("SyncTask","Added note item, title: " + resultNoteItem.title);
             }
 
         } catch (UnsupportedEncodingException e) {
@@ -114,6 +100,7 @@ public class QueryTask extends AsyncTask<Integer, Void, String> {
 
     @Override
     protected void onPostExecute(String result) {
-        queryCompleteListener.handleQueryResult(receivedNoteList);
+        Log.d("SyncTask","received Note List Length is " + receivedNoteList.size());
+        syncCompleteListener.handleSyncResult(receivedNoteList);
     }
 }
