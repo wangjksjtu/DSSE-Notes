@@ -13,6 +13,8 @@ import android.view.ViewGroup;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 import cn.edu.is.dsse_notes.Async.DeleteTask;
 import cn.edu.is.dsse_notes.note.NoteContent;
 
@@ -26,7 +28,7 @@ public class ListFragment extends Fragment implements
         MyListRecyclerViewAdapter.Listener,
         SwipeController.SwipeAction {
 
-    public static interface OnItemClickListener {
+    public static interface ListFragmentInteractionListener {
         public void onItemClicked(int position);
         public void onLeftClicked(int position);
         public void onRightClicked(int position);
@@ -34,8 +36,9 @@ public class ListFragment extends Fragment implements
 
     private static final String ARG_COLUMN_COUNT = "column-count";
     private int mColumnCount = 1;
-    private OnItemClickListener onItemClickListener;
+    private ListFragmentInteractionListener listFragmentInteractionListener;
     private MyListRecyclerViewAdapter myListRecyclerViewAdapter = null;
+    private RecyclerView mRecyclerView = null;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -44,7 +47,6 @@ public class ListFragment extends Fragment implements
     public ListFragment() {
     }
 
-    // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
     public static ListFragment newInstance(int columnCount) {
         ListFragment fragment = new ListFragment();
@@ -74,6 +76,7 @@ public class ListFragment extends Fragment implements
             Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;
             recyclerView.setLayoutManager(new LinearLayoutManager(context));
+            mRecyclerView = recyclerView;
             MyListRecyclerViewAdapter adapter = new MyListRecyclerViewAdapter(NoteContent.ITEMS, this);
             recyclerView.setAdapter(adapter);
             myListRecyclerViewAdapter = adapter;
@@ -105,19 +108,19 @@ public class ListFragment extends Fragment implements
     @Override
     public void onClick(int position) {
         Toast.makeText(getContext(), "Item #" + position, Toast.LENGTH_SHORT).show();
-        onItemClickListener.onItemClicked(position);
+        listFragmentInteractionListener.onItemClicked(position);
         return;
     }
 
-    public void setListener(OnItemClickListener onItemClickListener) {
-        this.onItemClickListener = onItemClickListener;
+    public void setListener(ListFragmentInteractionListener listFragmentInteractionListener) {
+        this.listFragmentInteractionListener = listFragmentInteractionListener;
     }
 
     // Swipe Action interface
     @Override
     public void onLeftClicked(int position) {
         // Edit is handled by main activity
-        onItemClickListener.onLeftClicked(position);
+        listFragmentInteractionListener.onLeftClicked(position);
     }
 
     @Override
@@ -139,6 +142,11 @@ public class ListFragment extends Fragment implements
             DeleteTask deleteTask = new DeleteTask();
             deleteTask.execute(toDeleteRemoteID);
         }
+    }
+
+    public void onDataSetChanged(ArrayList<NoteContent.NoteItem> dataSet) {
+        MyListRecyclerViewAdapter myListRecyclerViewAdapter = new MyListRecyclerViewAdapter(dataSet, this);
+        mRecyclerView.setAdapter(myListRecyclerViewAdapter);
     }
 
 }

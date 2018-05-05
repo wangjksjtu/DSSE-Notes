@@ -80,10 +80,11 @@ public class PutTask extends AsyncTask<NoteContent.NoteItem, Void, Boolean> {
         try {
             String keys = URLEncoder.encode(item.getKeyString(), "UTF-8");
             JSONObject itemJsonObject = new JSONObject();
+            itemJsonObject.put("localId", item.id);
             itemJsonObject.put("title", item.title);
-            itemJsonObject.put("title", item.details);
+            itemJsonObject.put("content", item.details);
             String content = URLEncoder.encode(itemJsonObject.toString(),"UTF-8");
-            return "keys=" + keys + "&title=" + content;
+            return "keys=" + keys + "&content=" + content;
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (JSONException e) {

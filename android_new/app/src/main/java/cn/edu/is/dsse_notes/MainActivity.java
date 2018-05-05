@@ -1,5 +1,7 @@
 package cn.edu.is.dsse_notes;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.util.Log;
@@ -18,6 +20,9 @@ import android.view.MenuItem;
 import android.net.Uri;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
 import cn.edu.is.dsse_notes.Async.DeleteTask;
 import cn.edu.is.dsse_notes.Async.PostTask;
 import cn.edu.is.dsse_notes.Async.PutTask;
@@ -27,15 +32,16 @@ import cn.edu.is.dsse_notes.note.NoteContent;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         SearchView.OnQueryTextListener,
-        cn.edu.is.dsse_notes.ListFragment.OnItemClickListener,
-        cn.edu.is.dsse_notes.BlankFragment.OnFragmentInteractionListener,
+        ListFragment.ListFragmentInteractionListener,
         cn.edu.is.dsse_notes.DetailFragment.OnFragmentInteractionListener,
-        cn.edu.is.dsse_notes.Async.PostTask.PostListener
+        cn.edu.is.dsse_notes.Async.PostTask.PostListener,
+        cn.edu.is.dsse_notes.Async.QueryTask.QueryCompleteListener
 {
 
     private int currentDrawerPosition = 0;
     private SearchView searchView;
     private MenuItem myActionMenuItem;
+    private ListFragment currentListFragment = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +89,16 @@ public class MainActivity extends AppCompatActivity
         getMenuInflater().inflate(R.menu.main, menu);
         myActionMenuItem = menu.findItem(R.id.action_search);
         searchView = (SearchView) myActionMenuItem.getActionView();
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setQueryHint("Search Notes");
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                currentListFragment.onDataSetChanged((ArrayList<NoteContent.NoteItem>) NoteContent.ITEMS);
+                return false;
+            }
+        });
         searchView.setOnQueryTextListener(this);
         searchView.setIconified(true);
         return true;
@@ -132,6 +147,7 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_list) {
             ListFragment lf = new ListFragment();
             lf.setListener(this);
+            currentListFragment = lf;
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.main_frame, lf, "Visible Fragment");
             ft.addToBackStack(null);
@@ -172,11 +188,8 @@ public class MainActivity extends AppCompatActivity
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         ft.commit();
     }
-    // SearchView Interface
-    public boolean onQueryTextSubmit(String query) {
-        Toast.makeText(this, "TextSubmitted: " + query, Toast.LENGTH_SHORT).show();
-        return true;
-    }
+
+
 
     // List Item Click Interface
     @Override
@@ -190,6 +203,25 @@ public class MainActivity extends AppCompatActivity
         ft.commit();
     }
 
+    private void doSearch(String query) {
+
+        ArrayList<String> tagList = new ArrayList<String>();
+        ArrayList<Integer> toSearchTags = new ArrayList<>();
+        for (String tag : NoteContent.tagList) {
+            tagList.add(tag);
+        }
+        HashSet<String> tagSet = new HashSet<>(tagList);
+        for (String tag : query.split(" ")) {
+            if (tagSet.contains(tag)) {
+                toSearchTags.add(tagList.indexOf(tag));
+            }
+        }
+        Integer[] queryTags = toSearchTags.toArray(new Integer[toSearchTags.size()]);
+        QueryTask queryTask = new QueryTask();
+        queryTask.setQueryCompleteListener(this);
+        queryTask.execute(queryTags);
+    }
+
     @Override
     public void onLeftClicked(int position) {
 
@@ -200,15 +232,19 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    // Search Action View Handler
-    public boolean onQueryTextChange(String newText) {
-        Toast.makeText(this, "TextChanged: " + newText, Toast.LENGTH_SHORT).show();
+    // SearchView Interface
+    public boolean onQueryTextSubmit(String query) {
+        Toast.makeText(this, "TextSubmitted: " + query, Toast.LENGTH_SHORT).show();
+        doSearch(query);
         return true;
     }
 
-    public void onBlankFragmentInteraction(Uri uri) {
-        return;
+    public boolean onQueryTextChange(String newText) {
+        // Toast.makeText(this, "TextChanged: " + newText, Toast.LENGTH_SHORT).show();
+        return true;
     }
+
+
     private void onShareAction() {
     }
 
@@ -244,6 +280,12 @@ public class MainActivity extends AppCompatActivity
         for (NoteContent.NoteItem item : NoteContent.ITEMS) {
             Log.d("PostTaskC", "remote ID for " + item.id + " is " + item.remoteId);
         }
+    }
+
+    //Query task listener
+    @Override
+    public void handleResult(ArrayList<NoteContent.NoteItem> resultList) {
+        currentListFragment.onDataSetChanged(resultList);
     }
 }
 

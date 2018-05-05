@@ -91,7 +91,7 @@ public class DetailFragment extends Fragment {
             @Override
             public void chipDeselected(int i) {
                 Log.d("DetailFragment","Tag #" + i + " deselected");
-                mParamNote.tags.remove(i);
+                mParamNote.tags.remove(Integer.valueOf(i));
             }
         });
         return view;

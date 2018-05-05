@@ -114,6 +114,7 @@ public class PostTask extends AsyncTask<NoteContent.NoteItem, Void, Boolean> {
         try {
             String keys = URLEncoder.encode(item.getKeyString(), "UTF-8");
             JSONObject itemJsonObject = new JSONObject();
+            itemJsonObject.put("localId", item.id);
             itemJsonObject.put("title", item.title);
             itemJsonObject.put("content", item.details);
             String content = URLEncoder.encode(itemJsonObject.toString(),"UTF-8");

@@ -49,12 +49,6 @@ public class NoteContent {
         return dummyRemoteKey;
     }
 
-    static {
-        // Add some sample items.
-        addItem(createDummyItem(0));
-        addItem(createDummyItem(1));
-    }
-
     private static void addItem(NoteItem item) {
         ITEMS.add(item);
         ITEM_MAP.put(item.id, item);
